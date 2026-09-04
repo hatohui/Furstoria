@@ -1,0 +1,8 @@
+version: "3"
+
+tasks:
+  install:
+    desc: "Install JS dependencies (bun install)"
+    internal: true
+    cmds:
+      - bun install

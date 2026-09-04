@@ -1,0 +1,28 @@
+version: "3"
+
+vars:
+  VENV_DIR: .venv
+  PYTHON_BIN: '{{if eq OS "windows"}}{{.VENV_DIR}}\Scripts\python.exe{{else}}{{.VENV_DIR}}/bin/python{{end}}'
+
+tasks:
+  install:
+    desc: "Create a Python virtualenv (.venv) and install scripts/python dependencies"
+    internal: true
+    status:
+      - '"{{.PYTHON_BIN}}" -c "import PIL"'
+    cmds:
+      - cmd: python -m venv {{.VENV_DIR}}
+        platforms: [windows]
+      - cmd: python3 -m venv {{.VENV_DIR}}
+        platforms: [linux, darwin]
+      - '"{{.PYTHON_BIN}}" -m pip install -r scripts/python/requirements.txt'
+
+  images:webp:
+    desc: "Convert raster images in public/ to .webp, archiving originals into public/_original"
+    deps: [install]
+    cmd: '"{{.PYTHON_BIN}}" scripts/python/convert_to_webp.py'
+
+  images:webp:dry:
+    desc: "Preview the public/ -> .webp conversion without writing or moving any files"
+    deps: [install]
+    cmd: '"{{.PYTHON_BIN}}" scripts/python/convert_to_webp.py --dry-run'

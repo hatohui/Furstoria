@@ -1,0 +1,20 @@
+version: "3"
+
+includes:
+  task:
+    taskfile: scripts/taskfiles/task.taskfile.yml
+  scripts:
+    taskfile: scripts/taskfiles/scripts.taskfile.yml
+  deps:
+    taskfile: scripts/taskfiles/deps.taskfile.yml
+
+tasks:
+  default:
+    cmds:
+      - task: task:list
+
+  setup:
+    desc: "Install dependencies and set up the project"
+    cmds:
+      - task: scripts:install
+      - task: deps:install
