@@ -10,6 +10,6 @@ type CharacterSelectState = {
 
 export const useCharacterSelectStore = create<CharacterSelectState>((set) => ({
   activeId: null,
-  setActive: (id) => set({ activeId: id }),
+  setActive: (id) => set((s) => (s.activeId === id ? s : { activeId: id })),
   clearActive: () => set({ activeId: null }),
 }));

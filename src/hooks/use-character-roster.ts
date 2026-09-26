@@ -12,13 +12,14 @@ const PANEL_SELECTOR = "[data-roster-panel]";
 /**
  * Owns the roster strip: once the intro gate opens, plays the entrance
  * (panels slide in along the skew axis, alternating from top and bottom),
- * and clears the active
- * character when the pointer or keyboard focus leaves the roster.
+ * unlocks interaction once it lands, and clears the active character when
+ * the pointer or keyboard focus leaves the roster.
  */
 export function useCharacterRoster() {
   const rosterRef = useRef<HTMLUListElement>(null);
   const clearActive = useCharacterSelectStore((s) => s.clearActive);
   const isRevealed = useIntroStore(selectIsRevealed);
+  const markRosterReady = useIntroStore((s) => s.markRosterReady);
 
   useGSAP(
     () => {
@@ -28,6 +29,7 @@ export function useCharacterRoster() {
 
       mm.add(REDUCED_MOTION_QUERY, () => {
         gsap.set(PANEL_SELECTOR, { autoAlpha: 1 });
+        markRosterReady();
       });
 
       mm.add("(prefers-reduced-motion: no-preference)", () => {
@@ -39,6 +41,7 @@ export function useCharacterRoster() {
             duration: 1.2,
             ease: "expo.out",
             stagger: 0.09,
+            onComplete: markRosterReady,
           },
         );
       });

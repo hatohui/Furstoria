@@ -92,7 +92,10 @@ export function useCharacterPanel({ id, framing }: Character) {
     { dependencies: [isActive, isDimmed] },
   );
 
-  const activate = useCallback(() => setActive(id), [id, setActive]);
+  // Read at call time: ignore hover/focus/tap until the entrance has landed.
+  const activate = useCallback(() => {
+    if (useIntroStore.getState().isRosterReady) setActive(id);
+  }, [id, setActive]);
   // A failed load still counts, so a broken image can't stall the intro.
   const onArtSettled = useCallback(() => markLoaded(id), [id, markLoaded]);
   const { frameStyle, artStyle } = useMemo(() => getArtFrame(framing), [framing]);

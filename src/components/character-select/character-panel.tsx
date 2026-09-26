@@ -30,7 +30,7 @@ export function CharacterPanel({ character }: CharacterPanelProps) {
       <button
         type="button"
         aria-label={`Select ${character.name}`}
-        onMouseEnter={activate}
+        onMouseMove={activate}
         onFocus={activate}
         onClick={activate}
         style={{ backgroundColor: character.accent }}

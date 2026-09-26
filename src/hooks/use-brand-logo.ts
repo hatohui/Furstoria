@@ -2,7 +2,7 @@ import { useRef } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { useCharacterSelectStore } from "@stores/use-character-select-store";
-import { selectIsRevealed, useIntroStore } from "@stores/use-intro-store";
+import { useIntroStore } from "@stores/use-intro-store";
 import { REDUCED_MOTION_QUERY, motionDuration } from "@utils/motion";
 
 gsap.registerPlugin(useGSAP);
@@ -12,15 +12,14 @@ const LOGO_HOLD = 0.6;
 
 /**
  * The logo is the first thing on screen: it resolves out of a blur on the
- * dark stage and holds there while the artwork loads, then punches as the
- * roster slides in behind it. Afterwards it steps back (fades and shrinks)
+ * dark stage and holds there while the artwork loads and the roster slides
+ * in behind it. Afterwards it steps back (fades and shrinks)
  * whenever a character is active so it never covers the revealed art.
  */
 export function useBrandLogo() {
   const introRef = useRef<HTMLDivElement>(null);
   const logoRef = useRef<HTMLDivElement>(null);
   const markLogoShown = useIntroStore((s) => s.markLogoShown);
-  const isRevealed = useIntroStore(selectIsRevealed);
   const hasActive = useCharacterSelectStore((s) => s.activeId !== null);
 
   useGSAP(() => {
@@ -48,19 +47,6 @@ export function useBrandLogo() {
         .to({}, { duration: LOGO_HOLD });
     });
   });
-
-  useGSAP(
-    () => {
-      if (!isRevealed) return;
-
-      gsap.fromTo(
-        introRef.current,
-        { scale: 1.06 },
-        { scale: 1, duration: motionDuration(0.9), ease: "elastic.out(1, 0.6)" },
-      );
-    },
-    { dependencies: [isRevealed] },
-  );
 
   useGSAP(
     () => {
