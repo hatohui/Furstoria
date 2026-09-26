@@ -4,11 +4,13 @@ Convert raster images in `public/` to .webp, and move the original files
 into `public/_original/` (mirroring their original relative path).
 
 Usage:
-    python scripts/convert_to_webp.py [--quality 80] [--dry-run] [--public-dir public]
+    python scripts/convert_to_webp.py [--quality 80] [--lossless] [--dry-run] [--public-dir public]
 
 Notes:
     - Only raster formats are converted: .png .jpg .jpeg .bmp .tif .tiff .gif
     - .svg and .webp files are left alone (vector / already webp).
+    - --lossless keeps every pixel intact; --quality then only controls
+      compression effort (higher = smaller file, slower encode).
     - Requires Pillow: pip install Pillow
 """
 
@@ -44,7 +46,7 @@ def find_convertible_images(public_dir: Path) -> list[Path]:
     return files
 
 
-def convert_one(src: Path, public_dir: Path, quality: int, dry_run: bool) -> Path:
+def convert_one(src: Path, public_dir: Path, quality: int, lossless: bool, dry_run: bool) -> Path:
     """Convert `src` to .webp next to itself, then move the original into
     `public/_original/<relative path>`. Returns the new .webp path."""
     dest_webp = src.with_suffix(".webp")
@@ -64,13 +66,14 @@ def convert_one(src: Path, public_dir: Path, quality: int, dry_run: bool) -> Pat
                     save_all=True,
                     append_images=frames[1:],
                     quality=quality,
+                    lossless=lossless,
                     loop=im.info.get("loop", 0),
                     duration=im.info.get("duration", 100),
                 )
             else:
                 if im.mode not in ("RGB", "RGBA"):
                     im = im.convert("RGBA" if "A" in im.getbands() else "RGB")
-                im.save(dest_webp, format="WEBP", quality=quality)
+                im.save(dest_webp, format="WEBP", quality=quality, lossless=lossless)
         print(f"converted {src} -> {dest_webp}")
 
     relative = src.relative_to(public_dir)
@@ -100,6 +103,11 @@ def main() -> None:
         help="WebP quality, 0-100 (default: 80)",
     )
     parser.add_argument(
+        "--lossless",
+        action="store_true",
+        help="Encode losslessly (no quality loss)",
+    )
+    parser.add_argument(
         "--dry-run",
         action="store_true",
         help="Show what would happen without writing/moving any files",
@@ -118,7 +126,7 @@ def main() -> None:
     print(f"Found {len(images)} image(s) to convert in {public_dir}")
     for src in images:
         try:
-            convert_one(src, public_dir, args.quality, args.dry_run)
+            convert_one(src, public_dir, args.quality, args.lossless, args.dry_run)
         except Exception as exc:  # keep going on a per-file failure
             print(f"FAILED: {src}: {exc}", file=sys.stderr)
 

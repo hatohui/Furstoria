@@ -22,6 +22,11 @@ tasks:
     deps: [install]
     cmd: '"{{.PYTHON_BIN}}" scripts/python/convert_to_webp.py'
 
+  images:webp:lossless:
+    desc: "Convert raster images in public/ to lossless .webp, archiving originals into public/_original"
+    deps: [install]
+    cmd: '"{{.PYTHON_BIN}}" scripts/python/convert_to_webp.py --lossless --quality 100'
+
   images:webp:dry:
     desc: "Preview the public/ -> .webp conversion without writing or moving any files"
     deps: [install]
