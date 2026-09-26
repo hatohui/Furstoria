@@ -1,5 +1,8 @@
 version: "3"
 
+vars:
+  DOPPLER_BIN: '{{if eq OS "windows"}}{{env "LOCALAPPDATA"}}\Microsoft\WinGet\Packages\Doppler.doppler_Microsoft.Winget.Source_8wekyb3d8bbwe\doppler.exe{{else}}doppler{{end}}'
+
 includes:
   task:
     taskfile: scripts/taskfiles/task.taskfile.yml
@@ -7,6 +10,16 @@ includes:
     taskfile: scripts/taskfiles/scripts.taskfile.yml
   deps:
     taskfile: scripts/taskfiles/deps.taskfile.yml
+    vars:
+      DOPPLER_BIN: "{{.DOPPLER_BIN}}"
+  app:
+    taskfile: scripts/taskfiles/app.taskfile.yml
+    vars:
+      DOPPLER_BIN: "{{.DOPPLER_BIN}}"
+  infra:
+    taskfile: scripts/taskfiles/infra.taskfile.yml
+    vars:
+      DOPPLER_BIN: "{{.DOPPLER_BIN}}"
 
 tasks:
   default:
@@ -14,7 +27,17 @@ tasks:
       - task: task:list
 
   setup:
-    desc: "Install dependencies and set up the project"
+    desc: "Set up the project"
+    silent: true
     cmds:
-      - task: scripts:install
+      - echo "[INFO] Checking for Bun and Doppler CLI..."
+      - task: deps:install-bun
+      - task: deps:install-doppler
+      - echo "[INFO] Authenticating with Doppler..."
+      - task: deps:auth-doppler
+      - echo "[INFO] Installing dependencies..."
       - task: deps:install
+      - task: scripts:install
+      - echo "[INFO] Initializing Terraform..."
+      - task: infra:init
+      - echo "[INFO] Done. Run 'task app:dev' to start the dev server."

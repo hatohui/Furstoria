@@ -6,3 +6,55 @@ tasks:
     internal: true
     cmds:
       - bun install
+
+  sync:
+    desc: "Re-sync dependencies (bun install) after pulling changes to package.json or bun.lock"
+    cmds:
+      - task: install
+
+  install-bun:
+    internal: true
+    silent: true
+    status:
+      - bun --version
+    cmds:
+      - cmd: powershell -NoProfile -ExecutionPolicy Bypass -Command "irm bun.sh/install.ps1 | iex"
+        platforms: [windows]
+      - cmd: curl -fsSL https://bun.sh/install | bash
+        platforms: [linux, darwin]
+
+  install-doppler:
+    internal: true
+    silent: true
+    status:
+      - '"{{.DOPPLER_BIN}}" --version'
+    cmds:
+      - cmd: winget install -e --id Doppler.doppler || echo "[INFO] winget reported no changes (already installed) — continuing."
+        platforms: [windows]
+      - cmd: brew install dopplerhq/cli/doppler
+        platforms: [darwin]
+      - cmd: curl -Ls https://cli.doppler.com/install.sh | sh
+        platforms: [linux]
+
+  auth-doppler:
+    internal: true
+    interactive: true
+    status:
+      - '"{{.DOPPLER_BIN}}" whoami'
+      - '[ "$("{{.DOPPLER_BIN}}" configure get project --plain)" = "furstoria" ]'
+      - '[ "$("{{.DOPPLER_BIN}}" configure get config --plain)" = "tf" ]'
+    cmds:
+      - |
+        if ! "{{.DOPPLER_BIN}}" whoami >/dev/null 2>&1; then
+          printf "Please input your Doppler token here (ask hatohui): "
+          read -r token
+          # read -r keeps the CR from CRLF input, and a CR in an Authorization
+          # header makes Doppler fail with "invalid header field value".
+          # Parameter expansion only — Task's embedded shell has no `tr`.
+          token="${token//$'\r'/}"
+          token="${token// /}"
+          if [ -z "$token" ]; then echo "[ERROR] No token entered." && exit 1; fi
+          "{{.DOPPLER_BIN}}" configure set token "$token"
+          "{{.DOPPLER_BIN}}" whoami || (echo "[ERROR] Doppler authentication failed." && exit 1)
+        fi
+        "{{.DOPPLER_BIN}}" setup --project furstoria --config tf --no-interactive

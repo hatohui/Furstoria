@@ -1,0 +1,22 @@
+version: "3"
+
+tasks:
+  dev:
+    desc: "Run the Next.js dev server"
+    cmd: bun run dev
+
+  build:
+    desc: "Build the Worker bundle with OpenNext"
+    cmd: bun run cf:build
+
+  preview:
+    desc: "Build and serve the Worker bundle locally on the Workers runtime"
+    cmds:
+      - task: build
+      - bun run cf:preview
+
+  deploy:
+    desc: "Build and upload a new Worker version (Cloudflare credentials from Doppler)"
+    cmds:
+      - task: build
+      - '"{{.DOPPLER_BIN}}" run --project furstoria --config tf -- bun run cf:deploy'

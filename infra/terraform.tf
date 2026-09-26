@@ -1,0 +1,18 @@
+terraform {
+  required_version = "1.15.8"
+
+  required_providers {
+    cloudflare = {
+      source  = "cloudflare/cloudflare"
+      version = "5.26.0"
+    }
+  }
+
+  cloud {
+    organization = "hatohui"
+
+    workspaces {
+      name = "furstoria-workspace"
+    }
+  }
+}

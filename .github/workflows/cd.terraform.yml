@@ -1,0 +1,33 @@
+name: cd-terraform
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "infra/**"
+      - ".github/workflows/cd.terraform.yml"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cd-terraform
+  cancel-in-progress: false
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Terraform apply
+        uses: hatohui/doppler-terraform-apply@v0
+        with:
+          doppler-token: ${{ secrets.DOPPLER_TOKEN }}
+          doppler-project: furstoria
+          doppler-config: tf
+          working-directory: infra
+          terraform-version: 1.15.8
+          tf-api-token: ${{ secrets.TF_API_TOKEN }}

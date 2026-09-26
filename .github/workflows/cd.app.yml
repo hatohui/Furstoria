@@ -1,0 +1,47 @@
+name: cd-app
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "public/**"
+      - "package.json"
+      - "bun.lock"
+      - "next.config.ts"
+      - "open-next.config.ts"
+      - "wrangler.jsonc"
+      - ".github/workflows/cd.app.yml"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cd-app
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Fetch Cloudflare credentials from Doppler
+        id: doppler
+        uses: dopplerhq/secrets-fetch-action@v2.0.0
+        with:
+          doppler-token: ${{ secrets.DOPPLER_TOKEN }}
+          doppler-project: furstoria
+          doppler-config: tf
+
+      - name: Deploy Furstoria
+        uses: hatohui/publish-cloudflare-pages@v2
+        with:
+          target: worker
+          package: package.json
+          build_script: cf:build
+          deploy_script: cf:deploy
+          cloudflare_account_id: ${{ steps.doppler.outputs.CLOUDFLARE_ACCOUNT_ID }}
+          cloudflare_api_token: ${{ steps.doppler.outputs.CLOUDFLARE_API_TOKEN }}

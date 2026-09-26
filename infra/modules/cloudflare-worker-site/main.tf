@@ -1,6 +1,3 @@
-# The Worker entity only: name, routing and observability settings. Code is
-# uploaded separately as Worker versions by wrangler (`opennextjs-cloudflare
-# deploy`), so Terraform never needs the build output.
 resource "cloudflare_worker" "site" {
   account_id = var.account_id
   name       = var.worker_name
