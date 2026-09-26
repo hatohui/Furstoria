@@ -1,26 +1,28 @@
 import { useRef } from "react";
 import gsap from "gsap";
+import { Flip } from "gsap/Flip";
 import { useGSAP } from "@gsap/react";
-import { useCharacterSelectStore } from "@stores/use-character-select-store";
-import { useIntroStore } from "@stores/use-intro-store";
+import { selectIsRevealed, useIntroStore } from "@stores/use-intro-store";
 import { REDUCED_MOTION_QUERY, motionDuration } from "@utils/motion";
 
-gsap.registerPlugin(useGSAP);
+gsap.registerPlugin(useGSAP, Flip);
 
 /** How long the logo holds on the dark screen before the roster may enter. */
 const LOGO_HOLD = 0.6;
 
 /**
  * The logo is the first thing on screen: it resolves out of a blur on the
- * dark stage and holds there while the artwork loads and the roster slides
- * in behind it. Afterwards it steps back (fades and shrinks)
- * whenever a character is active so it never covers the revealed art.
+ * dark stage and holds there while the artwork loads. When the roster slides
+ * in, the logo docks into the top-right corner like a navbar mark at the
+ * same time.
  */
 export function useBrandLogo() {
   const introRef = useRef<HTMLDivElement>(null);
+  const slotRef = useRef<HTMLDivElement>(null);
   const logoRef = useRef<HTMLDivElement>(null);
+
+  const isDocked = useIntroStore(selectIsRevealed);
   const markLogoShown = useIntroStore((s) => s.markLogoShown);
-  const hasActive = useCharacterSelectStore((s) => s.activeId !== null);
 
   useGSAP(() => {
     const mm = gsap.matchMedia();
@@ -50,16 +52,25 @@ export function useBrandLogo() {
 
   useGSAP(
     () => {
-      gsap.to(logoRef.current, {
-        autoAlpha: hasActive ? 0 : 1,
-        scale: hasActive ? 0.82 : 1,
-        duration: motionDuration(0.45),
-        ease: "power3.out",
-        overwrite: "auto",
+      if (!isDocked) return;
+
+      // The logo has already re-rendered into its docked (corner) layout.
+      // Measure the transform that would put it back over the centre slot
+      // and animate from there, so CSS owns the final position on resize.
+      const fromSlot = Flip.fit(logoRef.current, slotRef.current, {
+        scale: true,
+        getVars: true,
+      }) as gsap.TweenVars;
+
+      gsap.from(logoRef.current, {
+        ...fromSlot,
+        // Matches the roster's slide-in so both land together.
+        duration: motionDuration(1.3),
+        ease: "expo.out",
       });
     },
-    { dependencies: [hasActive] },
+    { dependencies: [isDocked] },
   );
 
-  return { introRef, logoRef };
+  return { introRef, slotRef, logoRef, isDocked };
 }
