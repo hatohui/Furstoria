@@ -44,3 +44,16 @@ next-env.d.ts
 .venv
 __pycache__/
 *.pyc
+
+# cloudflare / opennext
+/.open-next/
+/.wrangler/
+.dev.vars*
+
+# terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+crash.log
