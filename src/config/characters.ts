@@ -1,4 +1,4 @@
-export type CharacterId = "zevrim" | "xonorth" | "bane" | "kavala";
+export type CharacterId = "zevrim" | "taoru" | "bane" | "kavala";
 
 export type Character = {
   id: CharacterId;
@@ -32,9 +32,9 @@ export const CHARACTERS: readonly Character[] = [
     framing: { x: 0.42, top: 0.05, zoom: 1 },
   },
   {
-    id: "xonorth",
-    name: "Xonorth",
-    image: "/assets/characters/xonorth.webp",
+    id: "taoru",
+    name: "Taoru",
+    image: "/assets/characters/taoru.webp",
     accent: "#c2456f",
     framing: { x: 0.5, top: 0.03, zoom: 1 },
   },
